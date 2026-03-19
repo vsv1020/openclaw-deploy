@@ -108,19 +108,11 @@ $workspace = "$env:USERPROFILE\openclaw-workspace"
 $configDir = "$env:USERPROFILE\.openclaw"
 if (-not (Test-Path $workspace)) { New-Item -ItemType Directory -Path $workspace -Force | Out-Null }
 
-# 使用 openclaw onboard 一次性完成初始化
-openclaw onboard `
-    --non-interactive `
-    --accept-risk `
-    --mode local `
-    --auth-choice openai-api-key `
-    --openai-api-key "$OPENAI_KEY" `
-    --gateway-auth token `
-    --gateway-bind loopback `
-    --install-daemon `
-    --skip-channels `
-    --skip-search `
-    --flow quickstart
+# 交互式向导初始化
+Write-Host "   请按照向导完成初始化配置..." -ForegroundColor Cyan
+Write-Host "   提示：选择 OpenAI → 填入 API Key → 其他按默认即可" -ForegroundColor Yellow
+Write-Host ""
+openclaw onboard
 
 # 补充 Telegram 和其他配置
 openclaw config set channels.telegram.enabled true

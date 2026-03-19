@@ -151,19 +151,11 @@ WORKSPACE="$HOME/openclaw-workspace"
 CONFIG_DIR="$HOME/.openclaw"
 mkdir -p "$WORKSPACE"
 
-# 使用 openclaw onboard 一次性完成初始化
-openclaw onboard \
-    --non-interactive \
-    --accept-risk \
-    --mode local \
-    --auth-choice openai-api-key \
-    --openai-api-key "$OPENAI_KEY" \
-    --gateway-auth token \
-    --gateway-bind loopback \
-    --install-daemon \
-    --skip-channels \
-    --skip-search \
-    --flow quickstart
+# 交互式向导初始化
+echo -e "${C}   请按照向导完成初始化配置...${N}"
+echo -e "${Y}   提示：选择 OpenAI → 填入 API Key → 其他按默认即可${N}"
+echo ""
+openclaw onboard
 
 # 补充 Telegram 和其他配置
 openclaw config set channels.telegram.enabled true
