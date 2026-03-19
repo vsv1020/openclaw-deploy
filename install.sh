@@ -132,55 +132,32 @@ echo -e "${G}   ✅ API Key 已设置${N}"
 # ----------------------------------------------------
 # 5. 写配置
 # ----------------------------------------------------
-echo -e "${Y}⚙️  Step 4/9: 写入配置...${N}"
-
-CONFIG_DIR="$HOME/.openclaw"
-mkdir -p "$CONFIG_DIR"
+echo -e "${Y}⚙️  Step 4/9: 初始化 + 写入配置...${N}"
 
 WORKSPACE="$HOME/openclaw-workspace"
+CONFIG_DIR="$HOME/.openclaw"
 
-# Generate unique auth token for this install
-AUTH_TOKEN=$(openssl rand -hex 32 2>/dev/null || python3 -c "import secrets; print(secrets.token_hex(32))")
+# 使用 openclaw setup 初始化（非交互模式）
+openclaw setup --non-interactive --workspace "$WORKSPACE" 2>/dev/null || true
 
-cat > "$CONFIG_DIR/openclaw.json" << CONFIGEOF
-{
-  "gateway": {
-    "auth": {
-      "token": "$AUTH_TOKEN"
-    }
-  },
-  "channels": {
-    "telegram": {
-      "enabled": true,
-      "botToken": "$TG_TOKEN",
-      "dmPolicy": "pairing"
-    }
-  },
-  "agents": {
-    "defaults": {
-      "model": "openai/gpt-4o-mini",
-      "workspace": "$WORKSPACE",
-      "memorySearch": {
-        "enabled": true
-      }
-    }
-  },
-  "tools": {
-    "exec": {
-      "host": "gateway",
-      "security": "full",
-      "ask": "off"
-    },
-    "elevated": {
-      "enabled": true
-    }
-  }
-}
-CONFIGEOF
+# 使用 openclaw config set 写入配置
+openclaw config set channels.telegram.enabled true 2>/dev/null
+openclaw config set channels.telegram.botToken "$TG_TOKEN" 2>/dev/null
+openclaw config set channels.telegram.dmPolicy pairing 2>/dev/null
+openclaw config set agents.defaults.model "openai/gpt-4o-mini" 2>/dev/null
+openclaw config set agents.defaults.workspace "$WORKSPACE" 2>/dev/null
+openclaw config set tools.exec.host gateway 2>/dev/null
+openclaw config set tools.exec.security full 2>/dev/null
+openclaw config set tools.exec.ask off 2>/dev/null
+openclaw config set tools.elevated.enabled true 2>/dev/null
 
-# Fix file and directory permissions
-chmod 700 "$CONFIG_DIR"
-chmod 600 "$CONFIG_DIR/openclaw.json"
+# 修复安全审计
+chmod 700 "$CONFIG_DIR" 2>/dev/null
+chmod 600 "$CONFIG_DIR/openclaw.json" 2>/dev/null
+
+# 运行 doctor 修复
+openclaw doctor --fix 2>/dev/null || true
+
 echo -e "${G}   ✅ 配置已写入${N}"
 
 # ----------------------------------------------------

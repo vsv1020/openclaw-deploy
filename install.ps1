@@ -102,49 +102,28 @@ Write-Host "   ✅ API Key 已设置" -ForegroundColor Green
 # ----------------------------------------------------
 # 5. 初始化 + 写配置
 # ----------------------------------------------------
-Write-Host "⚙️  Step 4/7: 写入配置..." -ForegroundColor Yellow
+Write-Host "⚙️  Step 4/7: 初始化 + 写入配置..." -ForegroundColor Yellow
 
+$workspace = "$env:USERPROFILE\openclaw-workspace"
 $configDir = "$env:USERPROFILE\.openclaw"
-if (-not (Test-Path $configDir)) { New-Item -ItemType Directory -Path $configDir -Force | Out-Null }
 
-$AUTH_TOKEN = -join ((48..57) + (97..102) | Get-Random -Count 64 | ForEach-Object {[char]$_})
+# 使用 openclaw setup 初始化
+openclaw setup --non-interactive --workspace "$workspace" 2>$null
 
-$config = @"
-{
-  "gateway": {
-    "auth": {
-      "token": "$AUTH_TOKEN"
-    }
-  },
-  "channels": {
-    "telegram": {
-      "enabled": true,
-      "botToken": "$TG_TOKEN",
-      "dmPolicy": "pairing"
-    }
-  },
-  "agents": {
-    "defaults": {
-      "model": "openai/gpt-4o-mini",
-      "workspace": "$($workspace -replace '\\', '/')",
-      "memorySearch": {
-        "enabled": true
-      }
-    }
-  },
-  "tools": {
-    "exec": {
-      "host": "gateway",
-      "security": "full",
-      "ask": "off"
-    },
-    "elevated": {
-      "enabled": true
-    }
-  }
-}
-"@
-$config | Out-File -Encoding utf8 "$configDir\openclaw.json"
+# 使用 openclaw config set 写入配置
+openclaw config set channels.telegram.enabled true 2>$null
+openclaw config set channels.telegram.botToken "$TG_TOKEN" 2>$null
+openclaw config set channels.telegram.dmPolicy pairing 2>$null
+openclaw config set agents.defaults.model "openai/gpt-4o-mini" 2>$null
+openclaw config set agents.defaults.workspace "$($workspace -replace '\\', '/')" 2>$null
+openclaw config set tools.exec.host gateway 2>$null
+openclaw config set tools.exec.security full 2>$null
+openclaw config set tools.exec.ask off 2>$null
+openclaw config set tools.elevated.enabled true 2>$null
+
+# 运行 doctor 修复
+openclaw doctor --fix 2>$null
+
 Write-Host "   ✅ 配置已写入" -ForegroundColor Green
 
 # ----------------------------------------------------
