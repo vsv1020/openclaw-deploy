@@ -102,31 +102,40 @@ Write-Host "   ✅ API Key 已设置" -ForegroundColor Green
 # ----------------------------------------------------
 # 5. 初始化 + 写配置
 # ----------------------------------------------------
-Write-Host "⚙️  Step 4/7: 初始化 + 写入配置..." -ForegroundColor Yellow
+Write-Host "⚙️  Step 4/7: 初始化配置（openclaw onboard）..." -ForegroundColor Yellow
 
 $workspace = "$env:USERPROFILE\openclaw-workspace"
 $configDir = "$env:USERPROFILE\.openclaw"
+if (-not (Test-Path $workspace)) { New-Item -ItemType Directory -Path $workspace -Force | Out-Null }
 
-# 使用 openclaw setup 初始化
-openclaw setup --non-interactive --workspace "$workspace" 2>$null
+# 使用 openclaw onboard 一次性完成初始化
+openclaw onboard `
+    --non-interactive `
+    --accept-risk `
+    --mode local `
+    --auth-choice openai-api-key `
+    --openai-api-key "$OPENAI_KEY" `
+    --gateway-auth token `
+    --gateway-bind loopback `
+    --install-daemon `
+    --skip-channels `
+    --skip-search `
+    --flow quickstart
 
-# 使用 openclaw config set 写入配置
-openclaw config set channels.telegram.enabled true 2>$null
-openclaw config set channels.telegram.botToken "$TG_TOKEN" 2>$null
-openclaw config set channels.telegram.dmPolicy pairing 2>$null
-openclaw config set channels.telegram.groupPolicy open 2>$null
-openclaw config set agents.defaults.model "openai/gpt-4o-mini" 2>$null
-openclaw config set agents.defaults.workspace "$($workspace -replace '\\', '/')" 2>$null
-openclaw config set tools.exec.host gateway 2>$null
-openclaw config set tools.exec.security full 2>$null
-openclaw config set tools.exec.ask off 2>$null
-openclaw config set tools.elevated.enabled true 2>$null
-openclaw config set gateway.mode local 2>$null
+# 补充 Telegram 和其他配置
+openclaw config set channels.telegram.enabled true
+openclaw config set channels.telegram.botToken "$TG_TOKEN"
+openclaw config set channels.telegram.dmPolicy pairing
+openclaw config set channels.telegram.groupPolicy open
+openclaw config set tools.exec.host gateway
+openclaw config set tools.exec.security full
+openclaw config set tools.exec.ask off
+openclaw config set tools.elevated.enabled true
 
-# 运行 doctor 修复
+# doctor 修复
 openclaw doctor --fix 2>$null
 
-Write-Host "   ✅ 配置已写入" -ForegroundColor Green
+Write-Host "   ✅ 配置已完成" -ForegroundColor Green
 
 # ----------------------------------------------------
 # 6. 创建工作目录 + Agent 文件

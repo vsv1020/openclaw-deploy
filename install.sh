@@ -145,35 +145,44 @@ echo -e "${G}   ✅ API Key 已设置${N}"
 # ----------------------------------------------------
 # 5. 写配置
 # ----------------------------------------------------
-echo -e "${Y}⚙️  Step 4/9: 初始化 + 写入配置...${N}"
+echo -e "${Y}⚙️  Step 4/9: 初始化配置（openclaw onboard）...${N}"
 
 WORKSPACE="$HOME/openclaw-workspace"
 CONFIG_DIR="$HOME/.openclaw"
+mkdir -p "$WORKSPACE"
 
-# 使用 openclaw setup 初始化（非交互模式）
-openclaw setup --non-interactive --workspace "$WORKSPACE" 2>/dev/null || true
+# 使用 openclaw onboard 一次性完成初始化
+openclaw onboard \
+    --non-interactive \
+    --accept-risk \
+    --mode local \
+    --auth-choice openai-api-key \
+    --openai-api-key "$OPENAI_KEY" \
+    --gateway-auth token \
+    --gateway-bind loopback \
+    --install-daemon \
+    --skip-channels \
+    --skip-search \
+    --flow quickstart
 
-# 使用 openclaw config set 写入配置
-openclaw config set channels.telegram.enabled true 2>/dev/null
-openclaw config set channels.telegram.botToken "$TG_TOKEN" 2>/dev/null
-openclaw config set channels.telegram.dmPolicy pairing 2>/dev/null
-openclaw config set channels.telegram.groupPolicy open 2>/dev/null
-openclaw config set agents.defaults.model "openai/gpt-4o-mini" 2>/dev/null
-openclaw config set agents.defaults.workspace "$WORKSPACE" 2>/dev/null
-openclaw config set tools.exec.host gateway 2>/dev/null
-openclaw config set tools.exec.security full 2>/dev/null
-openclaw config set tools.exec.ask off 2>/dev/null
-openclaw config set tools.elevated.enabled true 2>/dev/null
-openclaw config set gateway.mode local 2>/dev/null
+# 补充 Telegram 和其他配置
+openclaw config set channels.telegram.enabled true
+openclaw config set channels.telegram.botToken "$TG_TOKEN"
+openclaw config set channels.telegram.dmPolicy pairing
+openclaw config set channels.telegram.groupPolicy open
+openclaw config set tools.exec.host gateway
+openclaw config set tools.exec.security full
+openclaw config set tools.exec.ask off
+openclaw config set tools.elevated.enabled true
 
-# 修复安全审计
+# 安全加固
 chmod 700 "$CONFIG_DIR" 2>/dev/null
 chmod 600 "$CONFIG_DIR/openclaw.json" 2>/dev/null
 
-# 运行 doctor 修复
+# doctor 修复
 openclaw doctor --fix 2>/dev/null || true
 
-echo -e "${G}   ✅ 配置已写入${N}"
+echo -e "${G}   ✅ 配置已完成${N}"
 
 # ----------------------------------------------------
 # 6. 创建工作目录 + Agent 文件
@@ -363,12 +372,8 @@ systemctl --user daemon-reload 2>/dev/null || true
 pkill -f "openclaw.*gateway" 2>/dev/null || true
 sleep 2
 
-# 运行 doctor 修复
-openclaw doctor --fix 2>/dev/null || true
-openclaw doctor --repair 2>/dev/null || true
-
-# 启动
-openclaw gateway start &
+# 重启 gateway（onboard 已安装 daemon）
+openclaw gateway restart 2>/dev/null || openclaw gateway start &
 sleep 8
 echo -e "${G}   ✅ Gateway 已启动${N}"
 
