@@ -113,16 +113,18 @@ $config = @"
     "telegram": {
       "enabled": true,
       "botToken": "$TG_TOKEN",
-      "dmPolicy": "open"
+      "dmPolicy": "open",
+      "allowFrom": ["*"]
     }
   },
-  "models": {
-    "default": "openai/gpt-4o-mini"
-  },
-  "memory": {
-    "enabled": true,
-    "autoCapture": true,
-    "provider": "core"
+  "agents": {
+    "defaults": {
+      "model": "openai/gpt-4o-mini",
+      "workspace": "$($workspace -replace '\\', '/')",
+      "memorySearch": {
+        "enabled": true
+      }
+    }
   },
   "tools": {
     "exec": {
@@ -133,11 +135,7 @@ $config = @"
     "elevated": {
       "enabled": true
     }
-  },
-  "browser": {
-    "enabled": true
-  },
-  "workspace": "$($workspace -replace '\\', '/')"
+  }
 }
 "@
 $config | Out-File -Encoding utf8 "$configDir\openclaw.json"

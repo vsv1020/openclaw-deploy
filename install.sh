@@ -145,16 +145,18 @@ cat > "$CONFIG_DIR/openclaw.json" << CONFIGEOF
     "telegram": {
       "enabled": true,
       "botToken": "$TG_TOKEN",
-      "dmPolicy": "open"
+      "dmPolicy": "open",
+      "allowFrom": ["*"]
     }
   },
-  "models": {
-    "default": "openai/gpt-4o-mini"
-  },
-  "memory": {
-    "enabled": true,
-    "autoCapture": true,
-    "provider": "core"
+  "agents": {
+    "defaults": {
+      "model": "openai/gpt-4o-mini",
+      "workspace": "$WORKSPACE",
+      "memorySearch": {
+        "enabled": true
+      }
+    }
   },
   "tools": {
     "exec": {
@@ -165,11 +167,7 @@ cat > "$CONFIG_DIR/openclaw.json" << CONFIGEOF
     "elevated": {
       "enabled": true
     }
-  },
-  "browser": {
-    "enabled": true
-  },
-  "workspace": "$WORKSPACE"
+  }
 }
 CONFIGEOF
 echo -e "${G}   ✅ 配置已写入${N}"
