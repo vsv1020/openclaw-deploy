@@ -139,14 +139,21 @@ mkdir -p "$CONFIG_DIR"
 
 WORKSPACE="$HOME/openclaw-workspace"
 
+# Generate unique auth token for this install
+AUTH_TOKEN=$(openssl rand -hex 32 2>/dev/null || python3 -c "import secrets; print(secrets.token_hex(32))")
+
 cat > "$CONFIG_DIR/openclaw.json" << CONFIGEOF
 {
+  "gateway": {
+    "auth": {
+      "token": "$AUTH_TOKEN"
+    }
+  },
   "channels": {
     "telegram": {
       "enabled": true,
       "botToken": "$TG_TOKEN",
-      "dmPolicy": "open",
-      "allowFrom": ["*"]
+      "dmPolicy": "pairing"
     }
   },
   "agents": {
@@ -170,6 +177,9 @@ cat > "$CONFIG_DIR/openclaw.json" << CONFIGEOF
   }
 }
 CONFIGEOF
+
+# Fix config file permissions
+chmod 600 "$CONFIG_DIR/openclaw.json"
 echo -e "${G}   ✅ 配置已写入${N}"
 
 # ----------------------------------------------------
@@ -350,7 +360,11 @@ openclaw gateway start &
 sleep 8
 echo -e "${G}   ✅ Gateway 已启动${N}"
 
-echo -e "${G}🔗 Step 8/9: 自动配对已配置（open 模式）${N}"
+echo -e "${Y}🔗 Step 8/9: 配对模式...${N}"
+echo -e "${G}   使用 pairing 模式（安全）${N}"
+echo -e "${Y}   首次使用：Telegram 发消息给 Bot → 获取配对码 → 运行：${N}"
+echo -e "${C}   openclaw pairing list telegram${N}"
+echo -e "${C}   openclaw pairing approve telegram <CODE>${N}"
 
 # ----------------------------------------------------
 # 9. 开机自启
@@ -432,10 +446,10 @@ echo "   AI 名称:    $BOT_NAME"
 echo "   场景包:     $SCENE"
 echo "   模型:       GPT-4o-mini"
 echo "   平台:       Telegram"
-echo "   配对模式:   Open（无需审批）"
+echo "   配对模式:   Pairing（安全配对）"
 echo ""
 echo -e "${G}🎉 现在就可以用了！${N}"
-echo "   打开 Telegram → 搜索你的 Bot → 发消息 → AI 直接回复"
+echo "   打开 Telegram → 搜索你的 Bot → 发消息 → 获取配对码 → approve 后即可使用"
 echo ""
 echo -e "${Y}🔧 维护命令:${N}"
 echo "   openclaw status          — 查看状态"

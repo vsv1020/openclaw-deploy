@@ -107,14 +107,20 @@ Write-Host "⚙️  Step 4/7: 写入配置..." -ForegroundColor Yellow
 $configDir = "$env:USERPROFILE\.openclaw"
 if (-not (Test-Path $configDir)) { New-Item -ItemType Directory -Path $configDir -Force | Out-Null }
 
+$AUTH_TOKEN = -join ((48..57) + (97..102) | Get-Random -Count 64 | ForEach-Object {[char]$_})
+
 $config = @"
 {
+  "gateway": {
+    "auth": {
+      "token": "$AUTH_TOKEN"
+    }
+  },
   "channels": {
     "telegram": {
       "enabled": true,
       "botToken": "$TG_TOKEN",
-      "dmPolicy": "open",
-      "allowFrom": ["*"]
+      "dmPolicy": "pairing"
     }
   },
   "agents": {
@@ -378,10 +384,10 @@ Write-Host "   AI 名称:    $BOT_NAME"
 Write-Host "   场景包:     $SCENE"
 Write-Host "   模型:       GPT-4o-mini"
 Write-Host "   平台:       Telegram"
-Write-Host "   配对模式:   Open（无需审批）"
+Write-Host "   配对模式:   Pairing（安全配对）"
 Write-Host ""
 Write-Host "🎉 现在就可以用了！" -ForegroundColor Green
-Write-Host "   打开 Telegram → 搜索你的 Bot → 发消息 → AI 直接回复" -ForegroundColor White
+Write-Host "   打开 Telegram → 搜索你的 Bot → 发消息 → 获取配对码 → approve 后使用" -ForegroundColor White
 Write-Host ""
 Write-Host "🔧 维护命令:" -ForegroundColor Yellow
 Write-Host "   openclaw status          — 查看状态"
