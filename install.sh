@@ -153,9 +153,15 @@ mkdir -p "$WORKSPACE"
 
 # 交互式向导初始化
 echo -e "${C}   请按照向导完成初始化配置...${N}"
-echo -e "${Y}   提示：选择 OpenAI → 填入 API Key → 其他按默认即可${N}"
+echo -e "${Y}   提示：${N}"
+echo -e "${Y}   1. 选择 API Key 类型 → OpenAI${N}"
+echo -e "${Y}   2. 填入 API Key${N}"
+echo -e "${Y}   3. Gateway 选 local${N}"
+echo -e "${Y}   4. 最后一步「How do you want to hatch」选 Skip / 按 Ctrl+C 退出${N}"
 echo ""
-openclaw onboard
+openclaw onboard --skip-health
+echo ""
+echo -e "${G}   ✅ onboard 完成${N}"
 
 # 补充 Telegram 和其他配置
 openclaw config set channels.telegram.enabled true

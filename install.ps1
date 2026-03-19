@@ -110,9 +110,15 @@ if (-not (Test-Path $workspace)) { New-Item -ItemType Directory -Path $workspace
 
 # 交互式向导初始化
 Write-Host "   请按照向导完成初始化配置..." -ForegroundColor Cyan
-Write-Host "   提示：选择 OpenAI → 填入 API Key → 其他按默认即可" -ForegroundColor Yellow
+Write-Host "   提示：" -ForegroundColor Yellow
+Write-Host "   1. 选择 API Key 类型 → OpenAI" -ForegroundColor Yellow
+Write-Host "   2. 填入 API Key" -ForegroundColor Yellow
+Write-Host "   3. Gateway 选 local" -ForegroundColor Yellow
+Write-Host "   4. 最后一步「How do you want to hatch」选 Skip / 按 Ctrl+C 退出" -ForegroundColor Yellow
 Write-Host ""
-openclaw onboard
+openclaw onboard --skip-health
+Write-Host ""
+Write-Host "   ✅ onboard 完成" -ForegroundColor Green
 
 # 补充 Telegram 和其他配置
 openclaw config set channels.telegram.enabled true
