@@ -114,6 +114,7 @@ openclaw setup --non-interactive --workspace "$workspace" 2>$null
 openclaw config set channels.telegram.enabled true 2>$null
 openclaw config set channels.telegram.botToken "$TG_TOKEN" 2>$null
 openclaw config set channels.telegram.dmPolicy pairing 2>$null
+openclaw config set channels.telegram.groupPolicy open 2>$null
 openclaw config set agents.defaults.model "openai/gpt-4o-mini" 2>$null
 openclaw config set agents.defaults.workspace "$($workspace -replace '\\', '/')" 2>$null
 openclaw config set tools.exec.host gateway 2>$null
