@@ -9,6 +9,13 @@
 
 set -e
 
+# Deactivate nvm if present (use system Node)
+export NVM_DIR=""
+unset nvm
+if [ -f /usr/bin/node ]; then
+    export PATH="/usr/bin:$(echo $PATH | sed 's|[^:]*nvm[^:]*:||g')"
+fi
+
 # Colors
 G='\033[0;32m'; Y='\033[1;33m'; R='\033[0;31m'; C='\033[0;36m'; N='\033[0m'
 
@@ -54,6 +61,10 @@ if command -v openclaw &>/dev/null; then
         systemctl --user stop openclaw 2>/dev/null || true
         systemctl --user disable openclaw 2>/dev/null || true
         rm -f "$HOME/.config/systemd/user/openclaw.service"
+        systemctl --user stop openclaw-gateway 2>/dev/null || true
+        systemctl --user disable openclaw-gateway 2>/dev/null || true
+        rm -f "$HOME/.config/systemd/user/openclaw-gateway.service"
+        systemctl --user daemon-reload 2>/dev/null || true
         systemctl --user daemon-reload 2>/dev/null || true
     fi
     if [ -d "$HOME/.openclaw" ]; then
@@ -96,6 +107,8 @@ else
         if command -v apt-get &>/dev/null; then
             curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
             sudo apt-get install -y nodejs
+            # Ensure system node is used, not nvm
+            export PATH="/usr/bin:$PATH"
         elif command -v dnf &>/dev/null; then
             curl -fsSL https://rpm.nodesource.com/setup_22.x | sudo bash -
             sudo dnf install -y nodejs
@@ -151,6 +164,7 @@ openclaw config set tools.exec.host gateway 2>/dev/null
 openclaw config set tools.exec.security full 2>/dev/null
 openclaw config set tools.exec.ask off 2>/dev/null
 openclaw config set tools.elevated.enabled true 2>/dev/null
+openclaw config set gateway.mode local 2>/dev/null
 
 # 修复安全审计
 chmod 700 "$CONFIG_DIR" 2>/dev/null

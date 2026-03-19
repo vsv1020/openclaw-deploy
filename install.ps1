@@ -121,6 +121,7 @@ openclaw config set tools.exec.host gateway 2>$null
 openclaw config set tools.exec.security full 2>$null
 openclaw config set tools.exec.ask off 2>$null
 openclaw config set tools.elevated.enabled true 2>$null
+openclaw config set gateway.mode local 2>$null
 
 # 运行 doctor 修复
 openclaw doctor --fix 2>$null
