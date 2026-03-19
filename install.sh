@@ -178,7 +178,8 @@ cat > "$CONFIG_DIR/openclaw.json" << CONFIGEOF
 }
 CONFIGEOF
 
-# Fix config file permissions
+# Fix file and directory permissions
+chmod 700 "$CONFIG_DIR"
 chmod 600 "$CONFIG_DIR/openclaw.json"
 echo -e "${G}   ✅ 配置已写入${N}"
 
