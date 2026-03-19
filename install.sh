@@ -335,6 +335,25 @@ echo -e "${G}   ✅ Skills 已安装${N}"
 # 8. 启动
 # ----------------------------------------------------
 echo -e "${Y}🚀 Step 7/9: 启动 OpenClaw...${N}"
+
+# 清理冲突的 systemd 服务
+systemctl --user stop openclaw-gateway.service 2>/dev/null || true
+systemctl --user disable openclaw-gateway.service 2>/dev/null || true
+rm -f "$HOME/.config/systemd/user/openclaw-gateway.service"
+systemctl --user stop openclaw.service 2>/dev/null || true
+systemctl --user disable openclaw.service 2>/dev/null || true
+rm -f "$HOME/.config/systemd/user/openclaw.service"
+systemctl --user daemon-reload 2>/dev/null || true
+
+# 杀掉残留进程
+pkill -f "openclaw.*gateway" 2>/dev/null || true
+sleep 2
+
+# 运行 doctor 修复
+openclaw doctor --fix 2>/dev/null || true
+openclaw doctor --repair 2>/dev/null || true
+
+# 启动
 openclaw gateway start &
 sleep 8
 echo -e "${G}   ✅ Gateway 已启动${N}"
