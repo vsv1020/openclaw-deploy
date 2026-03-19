@@ -34,6 +34,43 @@ Write-Host "⏳ 开始部署..." -ForegroundColor Yellow
 Write-Host ""
 
 # ----------------------------------------------------
+# 0. 检查是否已安装，已安装则先卸载
+# ----------------------------------------------------
+$ocExists = Get-Command openclaw -ErrorAction SilentlyContinue
+if ($ocExists) {
+    Write-Host "⚠️  检测到已有 OpenClaw 安装" -ForegroundColor Yellow
+    Write-Host "   正在卸载旧版本..." -ForegroundColor Yellow
+    
+    openclaw gateway stop 2>$null
+    
+    # 移除开机自启
+    $startupBat = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\Startup\openclaw.bat"
+    if (Test-Path $startupBat) { Remove-Item $startupBat -Force }
+    
+    # 备份旧配置
+    if (Test-Path "$env:USERPROFILE\.openclaw") {
+        $backup = "$env:USERPROFILE\.openclaw.backup.$(Get-Date -Format 'yyyyMMddHHmmss')"
+        Copy-Item -Recurse "$env:USERPROFILE\.openclaw" $backup
+        Write-Host "   📦 旧配置已备份到: $backup" -ForegroundColor Green
+    }
+    
+    # 备份旧工作目录
+    if (Test-Path "$env:USERPROFILE\openclaw-workspace") {
+        $wsBackup = "$env:USERPROFILE\openclaw-workspace.backup.$(Get-Date -Format 'yyyyMMddHHmmss')"
+        Copy-Item -Recurse "$env:USERPROFILE\openclaw-workspace" $wsBackup
+        Write-Host "   📦 旧工作目录已备份到: $wsBackup" -ForegroundColor Green
+    }
+    
+    # 卸载
+    npm uninstall -g openclaw 2>$null
+    Remove-Item -Recurse -Force "$env:USERPROFILE\.openclaw" -ErrorAction SilentlyContinue
+    Remove-Item -Recurse -Force "$env:USERPROFILE\openclaw-workspace" -ErrorAction SilentlyContinue
+    
+    Write-Host "   ✅ 旧版本已卸载（配置已备份）" -ForegroundColor Green
+    Write-Host ""
+}
+
+# ----------------------------------------------------
 # 2. 检查 Node.js
 # ----------------------------------------------------
 Write-Host "📥 Step 1/7: 检查 Node.js..." -ForegroundColor Yellow

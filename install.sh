@@ -40,6 +40,40 @@ echo -e "${Y}⏳ 开始部署...${N}"
 echo ""
 
 # ----------------------------------------------------
+# 0. 检查是否已安装，已安装则先卸载
+# ----------------------------------------------------
+if command -v openclaw &>/dev/null; then
+    echo -e "${Y}⚠️  检测到已有 OpenClaw 安装${N}"
+    echo -e "${Y}   正在卸载旧版本...${N}"
+    openclaw gateway stop 2>/dev/null || true
+    OS_CHK=$(uname -s)
+    if [ "$OS_CHK" = "Darwin" ]; then
+        launchctl unload "$HOME/Library/LaunchAgents/com.openclaw.gateway.plist" 2>/dev/null || true
+        rm -f "$HOME/Library/LaunchAgents/com.openclaw.gateway.plist"
+    else
+        systemctl --user stop openclaw 2>/dev/null || true
+        systemctl --user disable openclaw 2>/dev/null || true
+        rm -f "$HOME/.config/systemd/user/openclaw.service"
+        systemctl --user daemon-reload 2>/dev/null || true
+    fi
+    if [ -d "$HOME/.openclaw" ]; then
+        BACKUP="$HOME/.openclaw.backup.$(date +%Y%m%d%H%M%S)"
+        cp -r "$HOME/.openclaw" "$BACKUP"
+        echo -e "${G}   📦 旧配置已备份到: $BACKUP${N}"
+    fi
+    if [ -d "$HOME/openclaw-workspace" ]; then
+        WS_BACKUP="$HOME/openclaw-workspace.backup.$(date +%Y%m%d%H%M%S)"
+        cp -r "$HOME/openclaw-workspace" "$WS_BACKUP"
+        echo -e "${G}   📦 旧工作目录已备份到: $WS_BACKUP${N}"
+    fi
+    npm uninstall -g openclaw 2>/dev/null || true
+    rm -rf "$HOME/.openclaw"
+    rm -rf "$HOME/openclaw-workspace"
+    echo -e "${G}   ✅ 旧版本已卸载（配置已备份）${N}"
+    echo ""
+fi
+
+# ----------------------------------------------------
 # 2. 检查/安装 Node.js
 # ----------------------------------------------------
 echo -e "${Y}📥 Step 1/9: 检查 Node.js...${N}"
