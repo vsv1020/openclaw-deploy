@@ -1,0 +1,181 @@
+// OpenClaw 客户标准配置模板 v1.0
+// 架构：1 主 Agent（Main）+ 1 辅助 Agent
+// 使用：替换所有 <占位符>，去掉注释，保存为 ~/.openclaw/openclaw.json
+//
+// 占位符清单：
+// <CLIENT_USERNAME>        - Windows 用户名
+// <MAIN_BOT_TOKEN>         - 主 Bot 的 Telegram Token（@BotFather）
+// <ASSIST_AGENT_ID>        - 辅助 Agent ID（小写英文，如 "luckin"）
+// <ASSIST_AGENT_NAME>      - 辅助 Agent 显示名
+// <ASSIST_BOT_TOKEN>       - 辅助 Bot 的 Telegram Token
+// <CLIENT_TELEGRAM_ID>     - 客户 Telegram 数字 ID
+// <ASSIST_GROUP_ID>        - 辅助 Agent 群组 ID（可选）
+// <GATEWAY_TOKEN>          - Gateway 认证 token（openssl rand -hex 32）
+// <AUTH_PROFILE_NAME>      - 认证 profile 名（如 "anthropic:client-name"）
+{
+  "meta": {
+    "lastTouchedVersion": "2026.3.13"
+  },
+  "auth": {
+    "profiles": {
+      "<AUTH_PROFILE_NAME>": {
+        "provider": "anthropic",
+        "mode": "token"
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-sonnet-4-6"
+      },
+      "models": {
+        "anthropic/claude-sonnet-4-6": { "alias": "Sonnet-4.6" },
+        "anthropic/claude-opus-4-6": { "alias": "Opus-4.6" }
+      },
+      "workspace": "C:\\Users\\<CLIENT_USERNAME>\\.openclaw\\workspace"
+    },
+    "list": [
+      {
+        "id": "main",
+        "default": true,
+        "name": "Main",
+        "workspace": "C:\\Users\\<CLIENT_USERNAME>\\.openclaw\\workspace",
+        "model": {
+          "primary": "anthropic/claude-sonnet-4-6"
+        },
+        "tools": {
+          "profile": "full",
+          "fs": { "workspaceOnly": true }
+        }
+      },
+      {
+        "id": "<ASSIST_AGENT_ID>",
+        "default": false,
+        "name": "<ASSIST_AGENT_NAME>",
+        "workspace": "C:\\Users\\<CLIENT_USERNAME>\\.openclaw\\agents\\<ASSIST_AGENT_ID>\\workspace",
+        "model": {
+          "primary": "anthropic/claude-sonnet-4-6"
+        },
+        "heartbeat": {
+          "every": "2h",
+          "target": "telegram",
+          "to": "<CLIENT_TELEGRAM_ID>",
+          "prompt": "检查你的 NOW.md。如果有待办任务，继续执行。如果全部完成，回复 HEARTBEAT_OK。"
+        },
+        "tools": {
+          "profile": "full",
+          "fs": { "workspaceOnly": true }
+        }
+      }
+    ]
+  },
+  "tools": {
+    "profile": "full",
+    "exec": {
+      "security": "full",
+      "ask": "off"
+    },
+    "fs": {
+      "workspaceOnly": false
+    }
+  },
+  "bindings": [
+    {
+      "agentId": "main",
+      "match": {
+        "channel": "telegram",
+        "accountId": "default"
+      }
+    },
+    {
+      "agentId": "<ASSIST_AGENT_ID>",
+      "match": {
+        "channel": "telegram",
+        "accountId": "<ASSIST_AGENT_ID>"
+      }
+    }
+  ],
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto",
+    "restart": true,
+    "ownerDisplay": "raw"
+  },
+  "session": {
+    "dmScope": "per-account-channel-peer"
+  },
+  "hooks": {
+    "internal": {
+      "enabled": true,
+      "entries": {
+        "boot-md": { "enabled": true },
+        "bootstrap-extra-files": { "enabled": true },
+        "command-logger": { "enabled": true },
+        "session-memory": { "enabled": true }
+      }
+    }
+  },
+  "channels": {
+    "telegram": {
+      "enabled": true,
+      "dmPolicy": "pairing",
+      "groupPolicy": "allowlist",
+      "streaming": "partial",
+      "accounts": {
+        "default": {
+          "name": "Main Bot",
+          "enabled": true,
+          "dmPolicy": "pairing",
+          "botToken": "<MAIN_BOT_TOKEN>",
+          "groupPolicy": "allowlist",
+          "groupAllowFrom": ["<CLIENT_TELEGRAM_ID>"],
+          "streaming": "partial"
+        },
+        "<ASSIST_AGENT_ID>": {
+          "name": "<ASSIST_AGENT_NAME>",
+          "enabled": true,
+          "dmPolicy": "pairing",
+          "botToken": "<ASSIST_BOT_TOKEN>",
+          "groupPolicy": "allowlist",
+          "groupAllowFrom": ["*"],
+          "groups": {
+            "<ASSIST_GROUP_ID>": {
+              "requireMention": true
+            }
+          },
+          "streaming": "partial"
+        }
+      }
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "auth": {
+      "mode": "token",
+      "token": "<GATEWAY_TOKEN>"
+    },
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    },
+    "nodes": {
+      "denyCommands": [
+        "camera.snap",
+        "camera.clip",
+        "screen.record",
+        "contacts.add",
+        "calendar.add",
+        "reminders.add",
+        "sms.send"
+      ]
+    }
+  },
+  "plugins": {
+    "entries": {
+      "telegram": { "enabled": true }
+    }
+  }
+}
